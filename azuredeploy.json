@@ -1,0 +1,216 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "region": {
+      "type": "string",
+      "allowedValues": [
+        "East US",
+        "West US",
+        "North Europe",
+        "West Europe",
+        "East Asia",
+        "South East Asia",
+        "Japan East",
+        "Japan West",
+        "Australia East",
+        "Australia SouthEast",
+        "North Europe"
+      ],
+      "metadata": {
+        "description": "The Region to deploy the solution to"
+      }
+    },
+    "solutionName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of your solution (will be used to prefix the services names)"
+      }
+    },
+    "deviceName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name/id of the device you will provision into IoT Hub"
+      },
+      "defaultValue": "twitterpanel"
+    },
+    "iotHubSku": {
+      "type": "string",
+      "allowedValues": [
+        "F1",
+        "S1",
+        "S2"
+      ],
+      "defaultValue": "S1",
+      "metadata": {
+        "description": "The Iothub Sku"
+      }
+    },
+    "functionSku": {
+      "type": "string",
+      "allowedValues": [
+        "Free",
+        "Shared",
+        "Basic",
+        "Standard"
+      ],
+      "defaultValue": "Standard",
+      "metadata": {
+        "description": "The pricing tier for the hosting plan for Azure Function."
+      }
+    },
+    "functionWorkerSize": {
+      "type": "string",
+      "allowedValues": [
+        "0",
+        "1",
+        "2"
+      ],
+      "defaultValue": "0",
+      "metadata": {
+        "description": "The instance size of the hosting plan for Azure Function (small, medium, or large)."
+      }
+    }
+
+  },
+  "variables": {
+    "location": "[parameters('region')]",
+    "storageVersion": "2015-06-15",
+    "storageName": "[concat(parameters('solutionName'), 'storage')]",
+    "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+    "storageAccountSku": "Standard_LRS",
+    "webVersion": "2015-04-01",
+    "webPlanName": "[concat(parameters('solutionName'), 'plan')]",
+    "webSiteName": "[parameters('solutionName')]",
+    "iotHubVersion": "2016-02-03",
+    "iotHubTier": "Standard",
+    "iotHubName": "[concat(parameters('solutionName'), 'hub')]",
+    "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', variables('iotHubName'))]",
+    "iotHubKeyName": "iothubowner",
+    "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', variables('iotHubName'), variables('iotHubKeyName'))]",
+    "websiteCGName": "websitecg",
+    "functionAppName": "[concat(parameters('solutionName'), 'function')]",
+    "hostingPlanName": "[concat(parameters('solutionName'), 'function')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('storageVersion')]",
+      "location": "[variables('location')]",
+      "name": "[variables('storageName')]",
+      "properties": {
+        "accountType": "[variables('storageAccountSku')]"
+      },
+      "type": "Microsoft.Storage/storageAccounts",
+      "tags": {
+        "displayName": "storage"
+      }
+    },
+    {
+      "apiVersion": "[variables('iotHubVersion')]",
+      "type": "Microsoft.Devices/Iothubs",
+      "name": "[variables('iotHubName')]",
+      "location": "[variables('location')]",
+      "sku": {
+        "name": "[parameters('iotHubSku')]",
+        "tier": "[variables('iotHubTier')]",
+        "capacity": 1
+      },
+      "properties": {
+        "location": "[variables('location')]"
+      },
+      "tags": {
+        "displayName": "IoTHub"
+      },
+      "resources": [
+        {
+          "apiVersion": "[variables('iotHubVersion')]",
+          "name": "[concat(variables('iotHubName'), '/events/', variables('websiteCGName'))]",
+          "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+          "dependsOn": [
+            "[concat('Microsoft.Devices/Iothubs/', variables('iotHubName'))]"
+          ],
+          "tags": {
+            "displayName": "Website Consumer Group"
+          }
+        }
+
+      ]
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2015-04-01",
+      "name": "[variables('hostingPlanName')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "name": "[variables('hostingPlanName')]",
+        "sku": "[parameters('functionSku')]",
+        "workerSize": "[parameters('functionWorkerSize')]",
+        "hostingEnvironment": "",
+        "numberOfWorkers": 1
+      },
+      "tags": {
+        "displayName": "Function hosting plan"
+      }
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('functionAppName')]",
+      "location": "[variables('location')]",
+      "kind": "functionapp",
+      "properties": {
+        "name": "[variables('functionAppName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "hostingEnvironment": ""
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "[concat('Microsoft.Devices/Iothubs/', variables('iotHubName'))]"
+      ],
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+          ],
+          "properties": {
+            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2015-05-01-preview').key1,';')]",
+            "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2015-05-01-preview').key1,';')]",
+            "FUNCTIONS_EXTENSION_VERSION": "latest",
+            "AzureIoTHubConnectionString": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]",
+            "AzureIoTHubName": "[parameters('deviceName')]"
+          }
+        }
+      ],
+      "tags": {
+        "displayName": "Function"
+      }
+    }
+  ],
+  "outputs": {
+    "iotHubConnectionString": {
+      "type": "string",
+      "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]"
+    },
+    "Azure.IoT.IoTHub.EventHub.Name": {
+      "type": "string",
+      "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]"
+    },
+    "Azure.IoT.IoTHub.EventHub.ConnectionString": {
+      "type": "string",
+      "value": "[concat('Endpoint=', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]"
+    },
+    "Azure.IoT.IoTHub.EventHub.ConsumerGroup": {
+      "type": "string",
+      "value": "[variables('websiteCGName')]"
+    },
+    "Azure.Storage.ConnectionString": {
+      "type": "string",
+      "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageName'), ';AccountKey=', listkeys(variables('storageId'), variables('storageVersion')).key1)]"
+    }
+  }
+}

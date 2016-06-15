@@ -1,0 +1,10 @@
+ {
+  "name": "azureiothubecho_preview",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
+  "author": "Microsoft Corp.",
+  "dependencies": {
+    "azure-iothub": "1.0.8"
+  }
+ }

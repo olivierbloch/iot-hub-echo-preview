@@ -1,0 +1,12 @@
+{
+    "bindings": [
+    {
+        "name": "myEventHubTrigger",
+        "direction": "in",
+        "type": "eventHubTrigger",
+        "path": "AzureIoTHubName",
+        "connection": "AzureIoTHubConnectionString"
+    }
+    ],
+    "disabled": false
+}
