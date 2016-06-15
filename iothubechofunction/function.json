@@ -5,7 +5,7 @@
         "direction": "in",
         "type": "eventHubTrigger",
         "path": "AzureIoTHubName",
-        "connection": "AzureIoTHubConnectionString"
+        "connection": "AzureIoTHubEventHubConnectionString"
     }
     ],
     "disabled": false
