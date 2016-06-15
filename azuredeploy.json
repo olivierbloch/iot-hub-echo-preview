@@ -84,7 +84,7 @@
     "websiteCGName": "websitecg",
     "functionAppName": "[concat(parameters('solutionName'), 'function')]",
     "hostingPlanName": "[concat(parameters('solutionName'), 'function')]",
-    "repoUrl":"https://github.com/olivierbloch/iot-hub-echo-preview/tree/master/iothubechofunction",
+    "repoUrl":"https://github.com/olivierbloch/iot-hub-echo-preview",
     "branch":"master"
   },
   "resources": [
