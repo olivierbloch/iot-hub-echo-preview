@@ -27,14 +27,7 @@
         "description": "The name of your solution (will be used to prefix the services names)"
       }
     },
-    "deviceName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name/id of the device you will provision into IoT Hub"
-      },
-      "defaultValue": "twitterpanel"
-    },
-    "iotHubSku": {
+        "iotHubSku": {
       "type": "string",
       "allowedValues": [
         "F1",
@@ -90,7 +83,9 @@
     "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', variables('iotHubName'), variables('iotHubKeyName'))]",
     "websiteCGName": "websitecg",
     "functionAppName": "[concat(parameters('solutionName'), 'function')]",
-    "hostingPlanName": "[concat(parameters('solutionName'), 'function')]"
+    "hostingPlanName": "[concat(parameters('solutionName'), 'function')]",
+    "repoUrl":"https://github.com/olivierbloch/iot-hub-echo-preview/tree/master/iothubechofunction",
+    "branch":"master"
   },
   "resources": [
     {
@@ -183,6 +178,22 @@
             "FUNCTIONS_EXTENSION_VERSION": "latest",
             "AzureIoTHubConnectionString": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]",
             "AzureIoTHubName": "[parameters('deviceName')]"
+          }
+        },
+        {
+
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('functionAppName'))]",
+            "[resourceId('Microsoft.Web/Sites/config', parameters('functionAppName'), 'appsettings')]"
+          ],
+
+          "properties": {
+            "RepoUrl": "[parameters('repoUrl')]",
+            "branch": "[parameters('branch')]",
+            "IsManualIntegration": true
           }
         }
       ],
