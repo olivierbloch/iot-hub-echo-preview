@@ -4,7 +4,7 @@
         "name": "myEventHubTrigger",
         "direction": "in",
         "type": "eventHubTrigger",
-        "path": "AzureIoTHubName",
+        "path": "%AzureIoTHubName%",
         "connection": "AzureIoTHubEventHubConnectionString"
     }
     ],
