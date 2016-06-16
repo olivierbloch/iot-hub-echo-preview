@@ -81,7 +81,6 @@
     "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', variables('iotHubName'))]",
     "iotHubKeyName": "iothubowner",
     "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', variables('iotHubName'), variables('iotHubKeyName'))]",
-    "websiteCGName": "websitecg",
     "functionAppName": "[concat(parameters('solutionName'), 'function')]",
     "hostingPlanName": "[concat(parameters('solutionName'), 'function')]",
     "repoUrl":"https://github.com/olivierbloch/iot-hub-echo-preview",
@@ -115,21 +114,7 @@
       },
       "tags": {
         "displayName": "IoTHub"
-      },
-      "resources": [
-        {
-          "apiVersion": "[variables('iotHubVersion')]",
-          "name": "[concat(variables('iotHubName'), '/events/', variables('websiteCGName'))]",
-          "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
-          "dependsOn": [
-            "[concat('Microsoft.Devices/Iothubs/', variables('iotHubName'))]"
-          ],
-          "tags": {
-            "displayName": "Website Consumer Group"
-          }
-        }
-
-      ]
+      }
     },
     {
       "type": "Microsoft.Web/serverfarms",
@@ -204,25 +189,6 @@
     }
   ],
   "outputs": {
-    "iotHubConnectionString": {
-      "type": "string",
-      "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]"
-    },
-    "Azure.IoT.IoTHub.EventHub.Name": {
-      "type": "string",
-      "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]"
-    },
-    "Azure.IoT.IoTHub.EventHub.ConnectionString": {
-      "type": "string",
-      "value": "[concat('Endpoint=', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]"
-    },
-    "Azure.IoT.IoTHub.EventHub.ConsumerGroup": {
-      "type": "string",
-      "value": "[variables('websiteCGName')]"
-    },
-    "Azure.Storage.ConnectionString": {
-      "type": "string",
-      "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageName'), ';AccountKey=', listkeys(variables('storageId'), variables('storageVersion')).key1)]"
-    }
+
   }
 }
