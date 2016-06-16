@@ -5,6 +5,6 @@
   "main": "index.js",
   "author": "Microsoft Corp.",
   "dependencies": {
-    "azure-iothub": "1.0.8"
+    "azure-iothub": "latest"
   }
  }
