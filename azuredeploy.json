@@ -81,8 +81,9 @@
     "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', variables('iotHubName'))]",
     "iotHubKeyName": "iothubowner",
     "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', variables('iotHubName'), variables('iotHubKeyName'))]",
-    "functionAppName": "[concat(parameters('solutionName'), 'function')]",
-    "hostingPlanName": "[concat(parameters('solutionName'), 'function')]",
+    "functionAppName": "[concat(parameters('solutionName'), 'functionApp')]",
+    "functionName": "[concat(parameters('solutionName'), 'function')]",
+    "hostingPlanName": "[concat(parameters('solutionName'), 'functionApp')]",
     "repoUrl":"https://github.com/olivierbloch/iot-hub-echo-preview",
     "branch":"master"
   },
@@ -151,6 +152,31 @@
       "resources": [
         {
           "apiVersion": "2015-08-01",
+          "name": "[variables('functionName')]",
+          "type": "functions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+          ],
+          "properties": {
+            "config": {
+              "bindings": [
+                {
+                  "name": "myEventHubTrigger",
+                  "direction": "in",
+                  "type": "eventHubTrigger",
+                  "path": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]",
+                  "connection": "AzureIoTHubEventHubConnectionString"
+                }
+              ]
+            },
+            "files": {
+              "index.js": "var Client = require('azure-iothub').Client;\r\nvar Message = require('azure-iot-common').Message;\r\n\r\nvar connectionString = process.env.AzureIoTHubConnectionString;\r\n\r\nmodule.exports = function (context, myEventHubTrigger) {\r\n\r\n    var client = Client.fromConnectionString(connectionString);\r\n    \r\n    client.open(function (err) {\r\n      if (err) {\r\n        console.error('Could not connect: ' + err.message);\r\n      } else {\r\n        console.log('Client connected');\r\n    \r\n        // Create a message and send it to the IoT Hub every second\r\n      var data = JSON.stringify(myEventHubTrigger.message);\r\n      var message = new Message(data);\r\n      console.log('Sending message: ' + message.getData() + 'to: ' + myEventHubTrigger.deviceId);\r\n      client.send(myEventHubTrigger.deviceId, message, printResultFor('send'));\r\n      }\r\n      context.done();\r\n    });\r\n}\r\n\r\n// Helper function to print results in the console\r\nfunction printResultFor(op) {\r\n  return function printResult(err, res) {\r\n    if (err) {\r\n      console.log(op + ' error: ' + err.toString());\r\n    } else {\r\n      console.log(op + ' status: ' + res.constructor.name);\r\n    }\r\n  };\r\n}",
+              "package.json": " {\r\n  \"name\": \"azureiothubecho_preview\",\r\n  \"version\": \"0.0.1\",\r\n  \"private\": true,\r\n  \"main\": \"index.js\",\r\n  \"author\": \"Microsoft Corp.\",\r\n  \"dependencies\": {\r\n    \"azure-iothub\": \"1.0.9\"\r\n  }\r\n }"
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
           "name": "appsettings",
           "type": "config",
           "dependsOn": [
@@ -162,29 +188,12 @@
             "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2015-05-01-preview').key1,';')]",
             "FUNCTIONS_EXTENSION_VERSION": "latest",
             "AzureIoTHubConnectionString": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]",
-            "AzureIoTHubEventHubConnectionString": "[concat('Endpoint=', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]",
-            "AzureIoTHubName": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]"
-          }
-        },
-        {
-
-          "apiVersion": "2015-08-01",
-          "name": "web",
-          "type": "sourcecontrols",
-          "dependsOn": [
-            "[resourceId('Microsoft.Web/Sites', variables('functionAppName'))]",
-            "[resourceId('Microsoft.Web/Sites/config', variables('functionAppName'), 'appsettings')]"
-          ],
-
-          "properties": {
-            "RepoUrl": "[variables('repoUrl')]",
-            "branch": "[variables('branch')]",
-            "IsManualIntegration": false
+            "AzureIoTHubEventHubConnectionString": "[concat('Endpoint=', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion').primaryKey)]"
           }
         }
       ],
       "tags": {
-        "displayName": "Function"
+        "displayName": "Function App"
       }
     }
   ],
