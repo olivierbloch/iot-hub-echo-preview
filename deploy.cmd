@@ -1,8 +1,8 @@
 @if "%SCM_TRACE_LEVEL%" NEQ "4" @echo off
 
 :: ----------------------
-:: KUDU Deployment Script with Functions Package restore
-:: Version: 1.0.6
+:: KUDU Deployment Script
+:: Version: 1.0.4
 :: ----------------------
 
 :: Prerequisites
@@ -27,7 +27,7 @@ IF NOT DEFINED DEPLOYMENT_SOURCE (
 )
 
 IF NOT DEFINED DEPLOYMENT_TARGET (
-  SET DEPLOYMENT_TARGET=%ARTIFACTS%\wwwroot
+  SET DEPLOYMENT_TARGET=%ARTIFACTS%\wwwroot\iothubpingfunction
 )
 
 IF NOT DEFINED NEXT_MANIFEST_PATH (
@@ -47,38 +47,79 @@ IF NOT DEFINED KUDU_SYNC_CMD (
   :: Locally just running "kuduSync" would also work
   SET KUDU_SYNC_CMD=%appdata%\npm\kuduSync.cmd
 )
+goto Deployment
+
+:: Utility Functions
+:: -----------------
+
+:SelectNodeVersion
+
+IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
+  :: The following are done only on Windows Azure Websites environment
+  call %KUDU_SELECT_NODE_VERSION_CMD% "%DEPLOYMENT_SOURCE%" "%DEPLOYMENT_TARGET%" "%DEPLOYMENT_TEMP%"
+  IF !ERRORLEVEL! NEQ 0 goto error
+
+  IF EXIST "%DEPLOYMENT_TEMP%\__nodeVersion.tmp" (
+    SET /p NODE_EXE=<"%DEPLOYMENT_TEMP%\__nodeVersion.tmp"
+    IF !ERRORLEVEL! NEQ 0 goto error
+  )
+  
+  IF EXIST "%DEPLOYMENT_TEMP%\__npmVersion.tmp" (
+    SET /p NPM_JS_PATH=<"%DEPLOYMENT_TEMP%\__npmVersion.tmp"
+    IF !ERRORLEVEL! NEQ 0 goto error
+  )
+
+  IF NOT DEFINED NODE_EXE (
+    SET NODE_EXE=node
+  )
+
+  SET NPM_CMD="!NODE_EXE!" "!NPM_JS_PATH!"
+) ELSE (
+  SET NPM_CMD=npm
+  SET NODE_EXE=node
+)
+
+goto :EOF
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Deployment
 :: ----------
 
-echo Installing npm packages
+:Deployment
+echo Handling node.js deployment.
 
-FOR /F %%d in ('DIR /a:d /B') DO ( 
-    cd %%d
-
-    IF EXIST "package.json" (
-        Echo Installing packages for %%d
-        call npm install 
-    )
-)
-
-:: NuGet package restore
-echo "Restoring function packages"
-
-FOR /F %%d in ('DIR "Project.json" /S /B') DO ( 
-  call nuget restore %%d -PackagesDirectory %home%\data\Functions\packages\nuget
-)
-
-echo Handling Basic Web Site deployment.
-
-:: KuduSync
+:: 1. KuduSync
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
-  call :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_SOURCE%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd;Project.json"
+  call :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_SOURCE%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd; devicesample"
   IF !ERRORLEVEL! NEQ 0 goto error
 )
 
+:: 2. Select node version
+call :SelectNodeVersion
+
+:: 3. Install npm packages
+FOR /F %%d in ('DIR /a:%DEPLOYMENT_TARGET% /B') DO ( 
+    cd %%d
+
+    IF EXIST "package.json" (
+      call :ExecuteCmd !NPM_CMD! install --production
+      IF !ERRORLEVEL! NEQ 0 goto error
+    )
+)
+
+::IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
+::  pushd "%DEPLOYMENT_TARGET%"
+::  call :ExecuteCmd !NPM_CMD! install --production
+::  IF !ERRORLEVEL! NEQ 0 goto error
+::  popd
+::)
+
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+:: Post deployment stub
+IF DEFINED POST_DEPLOYMENT_ACTION call "%POST_DEPLOYMENT_ACTION%"
+IF !ERRORLEVEL! NEQ 0 goto error
+
 goto end
 
 :: Execute command routine that will echo out when error
