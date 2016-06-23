@@ -177,7 +177,7 @@
                       "name": "myEventHubTrigger",
                       "direction": "in",
                       "type": "eventHubTrigger",
-                      "path": "variables('iotHubName')",
+                      "path": "[variables('iotHubName')]",
                       "connection": "AzureIoTHubEventHubConnectionString"
                   }
                 ]
