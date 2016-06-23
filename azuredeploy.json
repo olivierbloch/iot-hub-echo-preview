@@ -81,7 +81,7 @@
     "iotHubKeyName": "iothubowner",
     "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', variables('iotHubName'), variables('iotHubKeyName'))]",
     "functionAppName": "[concat(parameters('solutionName'), 'functionApp')]",
-    "functionName": "[concat(parameters('solutionName'), 'function')]",
+    "functionName": "iothubpingfunction",
     "repoUrl":"https://github.com/olivierbloch/iot-hub-echo-preview",
     "branch":"master"
   },
