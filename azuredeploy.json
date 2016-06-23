@@ -171,6 +171,17 @@
             "[concat('Microsoft.Devices/Iothubs/', variables('iotHubName'))]"
           ],
           "properties": {
+             "config": {
+                "bindings": [
+                  {
+                      "name": "myEventHubTrigger",
+                      "direction": "in",
+                      "type": "eventHubTrigger",
+                      "path": "variables('iotHubName')",
+                      "connection": "AzureIoTHubEventHubConnectionString"
+                  }
+                ]
+            },
             "test_data": "{ 'deviceId': 'nodedevice', 'message': 'Hello' }"
           }
         }
