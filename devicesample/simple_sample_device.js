@@ -7,15 +7,17 @@
 // Uncomment one of these transports and then change it in fromConnectionString to test other transports
 // var Protocol = require('azure-iot-device-amqp-ws').AmqpWs;
 // var Protocol = require('azure-iot-device-http').Http;
- var Protocol = require('azure-iot-device-mqtt').Mqtt;
+var Protocol = require('azure-iot-device-mqtt').Mqtt;
 var Client = require('azure-iot-device').Client;
 var Message = require('azure-iot-device').Message;
 
+var querystring = require('querystring');
+
 // String containing Hostname, Device Id & Device Key in the following formats:
 //  "HostName=<iothub_host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"
-var connectionString = '<connectionstring>';
-// Device Id that will receive the message from IoT Hub
-var deviceId = "<deviceid>";
+//var connectionString = '<connectionstring>';
+
+var connectionString = 'HostName=pingiothub1hub.azure-devices.net;DeviceId=nodedevice;SharedAccessKey=7UTMYlDD7xtOTajNGF++LwEF5U0/po6/JdhZvY9nUNk=';
 
 // fromConnectionString must specify a transport constructor, coming from any transport package.
 var client = Client.fromConnectionString(connectionString, Protocol);
@@ -26,17 +28,19 @@ var connectCallback = function (err) {
   } else {
     console.log('Client connected');
     client.on('message', function (msg) {
-      console.log('Received Message from IoT Hub. Id: ' + msg.messageId + ' Body: ' + msg.data);
+      console.log('Received Message from IoT Hub: ' + msg.data);
       client.complete(msg, printResultFor('completed'));
-      // reject and abandon follow the same pattern.
-      // /!\ reject and abandon are not available with MQTT
     });
 
     // Create a message and send it to the IoT Hub every other second
     var sendInterval = setInterval(function () {
-      var data = JSON.stringify({ deviceId: deviceId, message: "Hello echo" });
+      // Extract deviceId from connection string
+      var dId = querystring.parse(connectionString, ';', null, null).DeviceId;
+      // Creating JSON message to send to Azure IoT Hub
+      var data = JSON.stringify({ deviceId: dId, message: "Hello echo" });
       var message = new Message(data);
       console.log('Sending message: ' + message.getData());
+      // Sending message to IoT Hub
       client.sendEvent(message, printResultFor('send'));
     }, 2000);
 
