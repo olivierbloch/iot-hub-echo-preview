@@ -15,9 +15,7 @@ var querystring = require('querystring');
 
 // String containing Hostname, Device Id & Device Key in the following formats:
 //  "HostName=<iothub_host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"
-//var connectionString = '<connectionstring>';
-
-var connectionString = 'HostName=pingiothub1hub.azure-devices.net;DeviceId=nodedevice;SharedAccessKey=7UTMYlDD7xtOTajNGF++LwEF5U0/po6/JdhZvY9nUNk=';
+var connectionString = '<connectionstring>';
 
 // fromConnectionString must specify a transport constructor, coming from any transport package.
 var client = Client.fromConnectionString(connectionString, Protocol);
