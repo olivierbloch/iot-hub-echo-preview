@@ -8,18 +8,30 @@ It also contains a simple device sample written in JavaScript for Node.js.
 
 Deployment of the solution simply consists in clicking on the below button.
 
-[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/)
+[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/ "Deploy to Azure" target="_blank")
  
 Once you have clicked on the button, you will be asked to login with your Azure subscription's credentials.
-Then you'll have to choose the AAD tenant and Subscription you want to deploy the solution to, as well as a few other parameters regarding your solution.
+When you are logged in, you will be prompted for entering parameters for the solution:
+  - Directory: Your Azure acount is bound to an Azure Active Directory. Usually the default one is the only one, but in some cases, you might be using several, in which case you can select the one you want your solution to be secured with.
+  - Subscription: this is the subscription you want the services to be deployed to if you have several Azure subscriptions.
+  - Resource Group/Resource Group Name: The services will be deployed and grouped under the specified resource group allowing a simpler management in the Azure portal. You can choose to create a new one, or to use  an existing resource group.
+  - Region: pick the region you want the services to be deployed to.
+  - Choose a solution name: **Important**, the solution name should be all lower case, only ascii caracters and no longer that 16 characters.
+  - IoT Hub Sku: select the Sku you want for the IoT Hub : F1 (Free), S1 or S2. Note that you can only have 1 instance of F1 per Azure subscription.
+  - Funciton Sku: select the Sku you wnat for the Azure Function.
 
-Note that if you want to use the free SKU for Azure IoT Hub, you can select the F1 tier in the drop down menu, but keep in mind that you are limited to a single instance of an F1 IoT Hub per subscription.
-
-**Important note about the "Solution Name" parameter**: the solution name should be all lower case, only ascii caracters and no longer that 16 characters.
 
 ![][1]
 
-Hit **Next** then **Deploy** in the wizard and wait a couple minutes for the services to be deployed and configured.
+Hit **Next**
+The wizard checks the selected parameters and lists the services it will deploy:
+  - Microsoft.Storage is the an Azure storage service required by both IoT Hub and Function
+  - Microsoft.Devices is the Azure IoT Hub service
+  - Website is the Azure Function service.  
+
+![][3]
+
+Hit **Deploy** in the wizard and wait a couple minutes for the services to be deployed and configured.
 
 ![][2]
 
@@ -72,6 +84,7 @@ If you want to get started with Azure IoT Hub, visit [Azure.com/iotdev](http://a
 
 [1]:media/azuredeploy1.png
 [2]:media/azuredeploy2.png
+[3]:media/azuredeploy3.png
 [manageazureiothub]:https://github.com/Azure/azure-iot-sdks/blob/master/doc/manage_iot_hub.md
 [azureiotsdks]:https://github.com/Azure/azure-iot-sdks
 [azureiotstarterkits]:https://azure.microsoft.com/develop/iot/starter-kits/

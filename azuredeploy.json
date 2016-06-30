@@ -51,20 +51,7 @@
       "metadata": {
         "description": "The pricing tier for the hosting plan for Azure Function."
       }
-    },
-    "functionWorkerSize": {
-      "type": "string",
-      "allowedValues": [
-        "0",
-        "1",
-        "2"
-      ],
-      "defaultValue": "0",
-      "metadata": {
-        "description": "The instance size of the hosting plan for Azure Function (small, medium, or large)."
-      }
     }
-
   },
   "variables": {
     "location": "[parameters('region')]",
@@ -82,6 +69,7 @@
     "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', variables('iotHubName'), variables('iotHubKeyName'))]",
     "functionAppName": "[concat(parameters('solutionName'), 'functionApp')]",
     "functionName": "iothubpingfunction",
+    "functionWorkerSize": "0",
     "repoUrl":"https://github.com/olivierbloch/iot-hub-echo-preview",
     "branch":"master"
   },
