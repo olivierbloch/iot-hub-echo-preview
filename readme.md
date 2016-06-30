@@ -8,10 +8,10 @@ It also contains a simple device sample written in JavaScript for Node.js.
 
 Deployment of the solution simply consists in clicking on the below button.
 
-<a href="https://azuredeploy.net/" target="_blank">
+<a href="https://azuredeploy.net/?repository=https://github.com/olivierbloch/iot-hub-echo-preview" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
- 
+
 Once you have clicked on the button, you will be asked to login with your Azure subscription's credentials.
 When you are logged in, you will be prompted for entering parameters for the solution:
   - Directory: Your Azure acount is bound to an Azure Active Directory. Usually the default one is the only one, but in some cases, you might be using several, in which case you can select the one you want your solution to be secured with.
