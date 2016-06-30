@@ -8,9 +8,7 @@ It also contains a simple device sample written in JavaScript for Node.js.
 
 Deployment of the solution simply consists in clicking on the below button.
 
-<a href="https://azuredeploy.net/?repository=https://github.com/olivierbloch/iot-hub-echo-preview" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
+[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/?repository=https://github.com/olivierbloch/iot-hub-echo-preview "Deploy to Azure" target="_blank")
 
 Once you have clicked on the button, you will be asked to login with your Azure subscription's credentials.
 When you are logged in, you will be prompted for entering parameters for the solution:
